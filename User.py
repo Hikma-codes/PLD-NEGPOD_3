@@ -36,6 +36,18 @@ class User:
             User.user_db[self.email] = {'name': self.name, 'password': self.password}
             print(f"User {self.name} with email {self.email} has been successfully signed up.")
 
+    def login(self, password):
+        if not self.validate_email():
+            return
+        
+        if self.email in User.user_db:
+            if User.user_db[self.email]['password'] == password:
+                print(f"Welcome back, {self.name}!")
+            else:
+                print("Invalid password. Please try again.")
+        else:
+            print("No user found with this email. Please sign up first.")
+
 class Hotel:
     def __init__(self, name, location, amenities, room_types):
         self.name = name
