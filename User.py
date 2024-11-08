@@ -23,6 +23,19 @@ class User:
             return False
         return True
 
+    def signup(self, password):
+        if not self.validate_email():
+            return
+        if not self.validate_password(password):
+            return
+        
+        if self.email in User.user_db:
+            print(f"User with email {self.email} is already registered.")
+        else:
+            self.password = password
+            User.user_db[self.email] = {'name': self.name, 'password': self.password}
+            print(f"User {self.name} with email {self.email} has been successfully signed up.")
+
 class Hotel:
     def __init__(self, name, location, amenities, room_types):
         self.name = name
