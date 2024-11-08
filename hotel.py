@@ -20,3 +20,11 @@ class Hotel:
             print(f"booking {booking_id} has been canceled.")
         else:
             print(f"booking id {booking_id} not found.")
+
+    def list_amenities(self):
+        if not self.amenities:
+           print("no amenities available.")
+        else:
+           print("amenities:")
+           for amenity in self.amenities:
+               print(f" - {amenity}")
