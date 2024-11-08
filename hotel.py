@@ -4,3 +4,7 @@ class Hotel:
         self.location = location
         self.amenities = amenities
         self.room_types = room_types
+
+    def book_room(self, room_types, room_number):
+        self.room_number = room_number
+        
