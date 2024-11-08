@@ -13,4 +13,10 @@ class Hotel:
         print(f"This is the hotel location {self.location}")
         print(f"This is the hotel amenities {self.amenities}")
         print(f"This is the hotel room_types {self.room_types}")
-    
+
+    def cancel_booking(self, booking_id):
+        if booking_id in self.bookings:
+            del self.bookings[booking_id]
+            print(f"booking {booking_id} has been canceled.")
+        else:
+            print(f"booking id {booking_id} not found.")
