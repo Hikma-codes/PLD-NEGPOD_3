@@ -1,98 +1,10 @@
-import datetime
-
-class User:
-    def __init__(self, username, password, name, email):
-        self.username = username
-        self.password = password
-        self.name = name
-        self.email = email
-
-class Hotel:
-    def __init__(self, name, location, num_rooms, amenities):
-        self.name = name
-        self.location = location
-        self.num_rooms = num_rooms
-        self.amenities = amenities
-        self.rooms = [{"room_no": i+1, "occupied": False, "guest_name": None, "check_in": None, "check_out": None} for i in range(num_rooms)]
-        self.itineraries = []
-
-    def add_itinerary(self, activity, time, price):
-        itinerary = Itinerary(self, activity, time, price)
-        self.itineraries.append(itinerary)
-
-    def check_in(self, room_no, guest_name, check_in_date, check_out_date):
-        for room in self.rooms:
-            if room["room_no"] == room_no and not room["occupied"]:
-                room["occupied"] = True
-                room["guest_name"] = guest_name
-                room["check_in"] = check_in_date
-                room["check_out"] = check_out_date
-                print(f"{guest_name} checked in to room {room_no} from {check_in_date} to {check_out_date}")
-                return
-        print(f"Room {room_no} is not available.")
-
-    def check_out(self, room_no):
-        for room in self.rooms:
-            if room["room_no"] == room_no and room["occupied"]:
-                guest_name = room["guest_name"]
-                check_in_date = room["check_in"]
-                check_out_date = room["check_out"]
-                room["occupied"] = False
-                room["guest_name"] = None
-                room["check_in"] = None
-                room["check_out"] = None
-                print(f"{guest_name} checked out of room {room_no} (stayed from {check_in_date} to {check_out_date})")
-                return
-        print(f"Room {room_no} is not occupied.")
-
-    def get_available_rooms(self):
-        available_rooms = [room for room in self.rooms if not room["occupied"]]
-        return available_rooms
-
-class Itinerary:
-    def __init__(self, hotel, activity, time, price):
-        self.hotel = hotel
-        self.activity = activity
-        self.time = time
-        self.price = price
+from modules.user import login, signup
+from modules.models import Hotel
+from modules.payment import initiate_payment
 
 class HotelManagementSystem:
     def __init__(self):
-        self.users = [User("root", "123", "Admin", "admin@example.com")]
-        self.hotels = [
-            Hotel("Grand Hotel", "New York", 50, ["Swimming pool", "Gym", "Restaurant"]),
-            Hotel("Seaside Resort", "Miami", 30, ["Beach", "Spa", "Bar"]),
-            Hotel("Mountain Retreat", "Colorado", 20, ["Hiking trails", "Sauna", "Fireplace"])
-        ]
-
-        # Add itineraries for each hotel
-        self.hotels[0].add_itinerary("Gym", "9:00 AM", 10.00)
-        self.hotels[0].add_itinerary("Swimming", "10:00 AM", 15.00)
-        self.hotels[1].add_itinerary("Beach", "11:00 AM", 20.00)
-        self.hotels[1].add_itinerary("Spa", "2:00 PM", 50.00)
-        self.hotels[2].add_itinerary("Hiking", "9:00 AM", 25.00)
-        self.hotels[2].add_itinerary("Sauna", "4:00 PM", 15.00)
-
-    def login(self):
-        username = input("Enter username: ")
-        password = input("Enter password: ")
-        for user in self.users:
-            if user.username == username and user.password == password:
-                print(f"Welcome, {user.name}!")
-                self.home_page(user)
-                return
-        print("Invalid username or password. Please try again or create an account.")
-        self.login()
-
-    def signup(self):
-        username = input("Enter a new username: ")
-        password = input("Enter a new password: ")
-        name = input("Enter your name: ")
-        email = input("Enter your email: ")
-        new_user = User(username, password, name, email)
-        self.users.append(new_user)
-        print("Account created successfully. Please log in.")
-        self.login()
+        self.hotels = Hotel.get_all_hotels()
 
     def home_page(self, user):
         while True:
@@ -112,8 +24,6 @@ class HotelManagementSystem:
             elif choice == "4":
                 print("Logging out...")
                 return
-            else:
-                print("Invalid choice. Please try again.")
 
     def profile(self, user):
         print(f"\nProfile Information:")
@@ -125,7 +35,7 @@ class HotelManagementSystem:
         print("\nSelect a hotel:")
         for i, hotel in enumerate(self.hotels):
             print(f"{i+1}. {hotel.name} - {hotel.location}")
-        choice = int(input("Enter your choice (1-3): "))
+        choice = int(input("Enter your choice: "))
         if 1 <= choice <= len(self.hotels):
             self.view_hotel(self.hotels[choice-1])
         else:
@@ -136,67 +46,89 @@ class HotelManagementSystem:
         print(f"Location: {hotel.location}")
         print(f"Rooms: {hotel.num_rooms}")
         print(f"Amenities: {', '.join(hotel.amenities)}")
+        available_rooms = [room for room in hotel.rooms if not room['occupied']]
         print("\nAvailable Rooms:")
-        for room in hotel.get_available_rooms():
+        for room in available_rooms:
             print(f"Room {room['room_no']}")
         self.book_room(hotel)
 
     def book_room(self, hotel):
         room_no = int(input("Enter the room number to book: "))
         guest_name = input("Enter the guest name: ")
-        check_in_date = datetime.datetime.strptime(input("Enter the check-in date (YYYY-MM-DD): "), "%Y-%m-%d")
-        check_out_date = datetime.datetime.strptime(input("Enter the check-out date (YYYY-MM-DD): "), "%Y-%m-%d")
-        hotel.check_in(room_no, guest_name, check_in_date, check_out_date)
-        self.view_itineraries(None, hotel)
+        if hotel.check_in_guest(room_no, guest_name):
+            print(f"Room {room_no} successfully booked for {guest_name}.")
+            self.view_itineraries(None, hotel)
+        else:
+            print("Booking failed. Please try another room or check availability.")
 
     def view_itineraries(self, user, hotel=None):
-        if not hotel:
-            hotel = self.hotels[0]  # Default to the first hotel
+        if hotel is None:
+            print("Select a hotel to view itineraries:")
+            for i, h in enumerate(self.hotels):
+                print(f"{i+1}. {h.name} - {h.location}")
+            choice = int(input("Enter your choice: "))
+            if 1 <= choice <= len(self.hotels):
+                hotel = self.hotels[choice-1]
+            else:
+                print("Invalid choice.")
+                return
+
         print(f"\nItineraries for {hotel.name}:")
         for itinerary in hotel.itineraries:
             print(f"{itinerary.activity} - {itinerary.time} - ${itinerary.price}")
-        self.book_itinerary(user, hotel)
+        self.book_itinerary(user, hotel, itinerary)
 
-    def book_itinerary(self, user, hotel):
+    def book_itinerary(self, user, hotel, itenerary):
         selected_activities = []
-        total_cost = 0
+        total_cost = 0  # Initialize total cost as 0
         while True:
+            # Prompt user for activity input
             activity = input("Enter an activity to book (or 'done' to finish): ")
+
             if activity.lower() == "done":
                 break
-            for itinerary in hotel.itineraries:
+
+            # Search for the activity in the hotel's itineraries
+            activity_found = False  # Flag to check if the activity was found
+            for itinerary in itenerary:
+                # Make comparison case insensitive by converting both to lowercase
                 if itinerary.activity.lower() == activity.lower():
                     selected_activities.append(itinerary)
-                    total_cost += itinerary.price
+                    print(f"DEBUG: Adding {itinerary.activity} - Price: {itinerary.price}")
+                    total_cost += itinerary.price  # Add the activity's price to total cost
                     print(f"Added {itinerary.activity} - {itinerary.time} - ${itinerary.price}")
+                    activity_found = True
                     break
-            else:
-                print("Invalid activity. Please try again.")
+            
+            # If activity is not found, inform the user
+            if not activity_found:
+                print(f"Activity '{activity}' not found. Please try again.")
 
-        print(f"\nTotal Cost: ${total_cost:.2f}")
-        print("Payment Options:")
-        print("1. Mobile Money")
-        print("2. PayPal")
-        print("3. Bank Account")
-        payment_method = input("Enter your payment method (1-3): ")
-        print("Booking confirmed. Thank you for using our Hotel Management System!")
+        # Debugging: Print total cost for selected activities
+        print(f"\nTotal cost for selected activities: RWF 30000")
+
+        # Now initiate payment
+        print(f"\nTotal Cost: RWF 30000")
+        phone_number = input("Enter your mobile number: ")
+        payment_response = initiate_payment(phone_number, "30000")
+        if payment_response.get('status') == 'success':
+            print("Payment successful. Your itinerary is booked!")
+        else:
+            print("Payment failed. Please try again.")
 
 if __name__ == "__main__":
-    hms = HotelManagementSystem()
+    print("Welcome to Hotel Management System")
+    print("1. Login")
+    print("2. Signup")
+    choice = input("Enter your choice (1-2): ")
 
-    while True:
-        print("\nWelcome to the Hotel Management System!")
-        print("1. Login")
-        print("2. Signup")
-        print("3. Exit")
-        choice = input("Enter your choice (1-3): ")
-
-        if choice == "1":
-            hms.login()
-        elif choice == "2":
-            hms.signup()
-        elif choice == "3":
-            print("Exiting the Hotel Management System...")
-            break
-        else:
-            print("Invalid choice. Please try again.")
+    if choice == "1":
+        user = login()
+        if user:
+            system = HotelManagementSystem()
+            system.home_page(user)
+    elif choice == "2":
+        user = signup()
+        if user:
+            system = HotelManagementSystem()
+            system.home_page(user)
