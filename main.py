@@ -23,3 +23,9 @@ def register_user(username, password):
     cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
     conn.commit()  # Commit the transaction to the database
     print(f"User {username} registered successfully!")  # Confirmation message
+
+# Function to fetch all hotels available in the database
+def get_hotels():
+    cursor.execute("SELECT * FROM hotels")
+    return cursor.fetchall()  # Returns a list of all hotels
+
