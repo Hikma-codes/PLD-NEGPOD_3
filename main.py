@@ -75,3 +75,8 @@ def generate_invoice(user, selected_hotel, selected_room, check_in, check_out, t
         print(f"Day {itinerary[2]}: Meal: {itinerary[3]}, Activity: {itinerary[4]}, Cost: ${itinerary[5]}")
     
     print("------------------")
+    # Function to return the price for selected amenities
+def get_amenity_price(amenity_name):
+    # For simplicity, assuming fixed prices for the amenities
+    prices = {"Gym": 100, "Private Pool": 200, "Gaming Area": 50}
+    return prices.get(amenity_name, 0)
