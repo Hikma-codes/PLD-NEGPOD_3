@@ -40,7 +40,6 @@ def get_amenities(room_id):
     cursor.execute("SELECT * FROM amenities WHERE room_id = %s", (room_id,))
     return cursor.fetchall()  # Returns a list of amenities for the given room
 
-
 # Function to book a room for a user and store booking information in the database
 def book_room(user_id, room_id, check_in, check_out, total_price):
     cursor.execute("""
