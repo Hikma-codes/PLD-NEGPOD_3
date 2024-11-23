@@ -31,3 +31,11 @@ def book_room(user_id, room_id, check_in, check_out, total_price):
     """, (user_id, room_id, check_in, check_out, total_price))
     conn.commit()  # Commit the transaction to the database
     return cursor.lastrowid  # Returns the booking ID for the new booking
+
+# Function to add an itinerary for a given booking, specifying the day, meal, activity, and cost
+def add_itinerary(booking_id, day, meal, activity, cost):
+    cursor.execute("""
+        INSERT INTO itinerary (booking_id, day, meal, activity, cost) 
+        VALUES (%s, %s, %s, %s, %s)
+    """, (booking_id, day, meal, activity, cost))
+    conn.commit()  # Commit the transaction to the database
