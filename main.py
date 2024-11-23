@@ -13,3 +13,7 @@ cursor = conn.cursor()  # Creating a cursor object to interact with the database
 def get_user(username, password):
     cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
     return cursor.fetchone()  # Returns the user data if found
+# Function to check if a username already exists in the database for registration
+def get_user_by_username(username):
+    cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+    return cursor.fetchone()  # Returns the user data if the username is taken
