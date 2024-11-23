@@ -56,3 +56,22 @@ def add_itinerary(booking_id, day, meal, activity, cost):
         VALUES (%s, %s, %s, %s, %s)
     """, (booking_id, day, meal, activity, cost))
     conn.commit()  # Commit the transaction to the database
+# Function to generate and display an invoice with booking and itinerary details
+def generate_invoice(user, selected_hotel, selected_room, check_in, check_out, total_price, payment_method, booking_id):
+    print("\n--- Invoice ---")
+    print(f"Customer: {user[1]}")
+    print(f"Hotel: {selected_hotel[1]} - {selected_hotel[2]}")
+    print(f"Room: {selected_room[2]}")
+    print(f"Check-in: {check_in}")
+    print(f"Check-out: {check_out}")
+    print(f"Total Price: ${total_price}")
+    print(f"Payment Method: {payment_method}")
+    
+    # Fetch itinerary details for the booking and display them
+    cursor.execute("SELECT * FROM itinerary WHERE booking_id = %s", (booking_id,))
+    itineraries = cursor.fetchall()
+    print("\n--- Itinerary ---")
+    for itinerary in itineraries:
+        print(f"Day {itinerary[2]}: Meal: {itinerary[3]}, Activity: {itinerary[4]}, Cost: ${itinerary[5]}")
+    
+    print("------------------")
