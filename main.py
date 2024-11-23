@@ -17,3 +17,9 @@ def get_user(username, password):
 def get_user_by_username(username):
     cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
     return cursor.fetchone()  # Returns the user data if the username is taken
+
+# Function to register a new user with the provided username and password
+def register_user(username, password):
+    cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
+    conn.commit()  # Commit the transaction to the database
+    print(f"User {username} registered successfully!")  # Confirmation message
