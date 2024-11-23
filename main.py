@@ -22,3 +22,12 @@ def get_user_by_username(username):
 def get_amenities(room_id):
     cursor.execute("SELECT * FROM amenities WHERE room_id = %s", (room_id,))
     return cursor.fetchall()  # Returns a list of amenities for the given room
+
+# Function to book a room for a user and store booking information in the database
+def book_room(user_id, room_id, check_in, check_out, total_price):
+    cursor.execute("""
+        INSERT INTO bookings (user_id, room_id, check_in, check_out, total_price, status) 
+        VALUES (%s, %s, %s, %s, %s, 'Confirmed')
+    """, (user_id, room_id, check_in, check_out, total_price))
+    conn.commit()  # Commit the transaction to the database
+    return cursor.lastrowid  # Returns the booking ID for the new booking
