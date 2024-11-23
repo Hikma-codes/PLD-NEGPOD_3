@@ -17,3 +17,8 @@ def get_user(username, password):
 def get_user_by_username(username):
     cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
     return cursor.fetchone()  # Returns the user data if the username is taken
+
+# Function to fetch amenities available for a specific room by its ID
+def get_amenities(room_id):
+    cursor.execute("SELECT * FROM amenities WHERE room_id = %s", (room_id,))
+    return cursor.fetchall()  # Returns a list of amenities for the given room
