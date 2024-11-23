@@ -29,3 +29,7 @@ def get_hotels():
     cursor.execute("SELECT * FROM hotels")
     return cursor.fetchall()  # Returns a list of all hotels
 
+# Function to fetch rooms of a specific hotel by its ID
+def get_rooms(hotel_id):
+    cursor.execute("SELECT * FROM rooms WHERE hotel_id = %s", (hotel_id,))
+    return cursor.fetchall()  # Returns a list of rooms for the given hotel
