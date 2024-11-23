@@ -1,5 +1,6 @@
 # Importing necessary libraries for MySQL database connection and date manipulation
 import mysql.connector
+from datetime import datetime
 
 # Establishing a connection to the MySQL database 'smart_stay' with user credentials
 conn = mysql.connector.connect(
@@ -56,6 +57,7 @@ def add_itinerary(booking_id, day, meal, activity, cost):
         VALUES (%s, %s, %s, %s, %s)
     """, (booking_id, day, meal, activity, cost))
     conn.commit()  # Commit the transaction to the database
+    
 # Function to generate and display an invoice with booking and itinerary details
 def generate_invoice(user, selected_hotel, selected_room, check_in, check_out, total_price, payment_method, booking_id):
     print("\n--- Invoice ---")
@@ -75,11 +77,13 @@ def generate_invoice(user, selected_hotel, selected_room, check_in, check_out, t
         print(f"Day {itinerary[2]}: Meal: {itinerary[3]}, Activity: {itinerary[4]}, Cost: ${itinerary[5]}")
     
     print("------------------")
-    # Function to return the price for selected amenities
+
+# Function to return the price for selected amenities
 def get_amenity_price(amenity_name):
     # For simplicity, assuming fixed prices for the amenities
     prices = {"Gym": 100, "Private Pool": 200, "Gaming Area": 50}
     return prices.get(amenity_name, 0)
+
 # Function to process the payment based on the selected option
 def process_payment(option):
     if option == 1:
@@ -94,3 +98,93 @@ def process_payment(option):
         paypal_email = input("Enter your PayPal email: ")
         print("Processing payment via PayPal...")
         print("Payment Successful!")
+
+# Main function to simulate the booking process and interact with the user
+def main():
+    print("Welcome to Smart Stay Hotels System!")
+    
+    # Main loop for the system's menu
+    while True:
+        print("\nMenu:")
+        print("1. Login")
+        print("2. Register")
+        print("3. Exit")
+        
+        choice = input("Select an option: ")
+        
+        if choice == "1":
+            # Login process: Validate user credentials
+            username = input("Enter your username: ")
+            password = input("Enter your password: ")
+            
+            user = get_user(username, password)
+            if user:
+                print(f"Welcome, {username}! Let's book your perfect stay.")
+                
+                hotels = get_hotels()
+                print("Available Locations:")
+                for idx, hotel in enumerate(hotels, 1):
+                    print(f"{idx}. {hotel[1]}, {hotel[2]}")
+                hotel_choice = int(input("Select a hotel location: "))
+                selected_hotel = hotels[hotel_choice - 1]
+                
+                rooms = get_rooms(selected_hotel[0])
+                print("Room Categories:")
+                for idx, room in enumerate(rooms, 1):
+                    print(f"{idx}. {room[2]} (Price: ${room[4]})")
+                room_choice = int(input("Choose a room category (1/2): "))
+                selected_room = rooms[room_choice - 1]
+                
+                amenities = get_amenities(selected_room[0])
+                print("Available Amenities:")
+                for amenity in amenities:
+                    print(f"- {amenity[1]}: ${amenity[2]}")
+                amenities_choice = input("Select amenities (comma-separated): ").split(",")
+                
+                check_in = input("Enter check-in date (YYYY-MM-DD): ")
+                check_out = input("Enter check-out date (YYYY-MM-DD): ")
+                
+                # Calculate total price
+                total_price = selected_room[4] * (datetime.strptime(check_out, "%Y-%m-%d") - datetime.strptime(check_in, "%Y-%m-%d")).days
+                total_price += sum([get_amenity_price(amenity.strip()) for amenity in amenities_choice])
+                
+                print(f"Confirm booking for Room {selected_room[0]} at ${total_price} for {total_price / selected_room[4]} nights? (yes/no): ", end="")
+                confirm = input().lower()
+                
+                if confirm == 'yes':
+                    # Book the room and get the booking ID
+                    booking_id = book_room(user[0], selected_room[0], check_in, check_out, total_price)
+                    print(f"Room {selected_room[0]} booked successfully!")
+                    
+                    # Generate itinerary for the booking
+                    for day in range(1, (datetime.strptime(check_out, "%Y-%m-%d") - datetime.strptime(check_in, "%Y-%m-%d")).days + 1):
+                        add_itinerary(booking_id, day, "Breakfast", 10, 50)
+                    print("Itinerary booked successfully!")
+                    
+                    # Payment options and processing
+                    print("Payment Options:\n1. Visa/Mastercard\n2. PayPal")
+                    payment_option = int(input("Select payment option (1/2): "))
+                    payment_method = "Visa/Mastercard" if payment_option == 1 else "PayPal"
+                    process_payment(payment_option)
+                    
+                    # Generate and print the invoice with itinerary details
+                    generate_invoice(user, selected_hotel, selected_room, check_in, check_out, total_price, payment_method, booking_id)
+            else:
+                print("Invalid username or password")
+        
+        elif choice == "2":
+            # Registration process
+            username = input("Enter your desired username: ")
+            if get_user_by_username(username):
+                print("Username already exists! Please choose another.")
+                continue
+            password = input("Enter your password: ")
+            register_user(username, password)
+        
+        elif choice == "3":
+            print("Goodbye!")
+            break
+
+# Run the main function if this script is executed
+if __name__ == "__main__":
+    main()
