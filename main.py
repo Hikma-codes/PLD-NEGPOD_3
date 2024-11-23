@@ -80,3 +80,17 @@ def get_amenity_price(amenity_name):
     # For simplicity, assuming fixed prices for the amenities
     prices = {"Gym": 100, "Private Pool": 200, "Gaming Area": 50}
     return prices.get(amenity_name, 0)
+# Function to process the payment based on the selected option
+def process_payment(option):
+    if option == 1:
+        card_number = input("Enter your card number: ")
+        card_pin = input("Enter your card PIN: ")
+        if len(card_number) == 16 and len(card_pin) == 4:
+            print("Processing payment...")
+            print("Payment Successful!")
+        else:
+            print("Invalid card details. Please try again.")
+    elif option == 2:
+        paypal_email = input("Enter your PayPal email: ")
+        print("Processing payment via PayPal...")
+        print("Payment Successful!")
